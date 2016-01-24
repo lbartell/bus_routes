@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://earth.google.com/kml/2.2">
+<Document>
+	<name>17.kml</name>
+	<Style id="sh_ylw-pushpin">
+		<IconStyle>
+			<scale>1.3</scale>
+			<Icon>
+				<href>http://maps.google.com/mapfiles/kml/pushpin/ylw-pushpin.png</href>
+			</Icon>
+			<hotSpot x="20" y="2" xunits="pixels" yunits="pixels"/>
+		</IconStyle>
+		<LineStyle>
+			<color>ff00a0aa</color>
+			<width>5</width>
+		</LineStyle>
+	</Style>
+	<Style id="sn_ylw-pushpin">
+		<IconStyle>
+			<scale>1.1</scale>
+			<Icon>
+				<href>http://maps.google.com/mapfiles/kml/pushpin/ylw-pushpin.png</href>
+			</Icon>
+			<hotSpot x="20" y="2" xunits="pixels" yunits="pixels"/>
+		</IconStyle>
+		<LineStyle>
+			<color>ff00a0aa</color>
+			<width>5</width>
+		</LineStyle>
+	</Style>
+	<StyleMap id="msn_ylw-pushpin">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#sn_ylw-pushpin</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#sh_ylw-pushpin</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Placemark>
+		<name>Rt. 17</name>
+		<styleUrl>#msn_ylw-pushpin</styleUrl>
+		<LineString>
+			<tessellate>1</tessellate>
+			<coordinates>
+-76.50605018578489,42.45306198293502,0 -76.50490602905992,42.45165915878081,0 -76.50461161353363,42.45133978354686,0 -76.50442112737261,42.45122481525906,0 -76.50424798224486,42.45126315594462,0 -76.50414410988222,42.45137814645821,0 -76.50400561706975,42.45155701886115,0 -76.50388442691701,42.45165923466689,0 -76.5037459114607,42.45169757211011,0 -76.50348618046546,42.45167203827868,0 -76.50294933644463,42.4511099378224,0 -76.50116598619033,42.45178716162844,0 -76.50042145622538,42.45191495784495,0 -76.49972886249432,42.45197886915118,0 -76.49933018863744,42.44606368287886,0 -76.4990372109238,42.44038259375301,0 -76.50177458231296,42.44030858226519,0 -76.50165992352042,42.4385422924143,0 -76.49677290310568,42.43871142382715,0 -76.50165992353791,42.43852113916207,0 -76.50177458223578,42.4402980056862,0 -76.49651479790847,42.44050943527322,0 </coordinates>
+		</LineString>
+	</Placemark>
+</Document>
+</kml>
