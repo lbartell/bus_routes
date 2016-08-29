@@ -10,6 +10,8 @@ from Tkinter import Tk
 from tkFileDialog import askopenfilename
 from tkFileDialog import asksaveasfilename
 import numpy as np
+from matplotlib import pyplot as plt
+from mpl_toolkits.basemap import Basemap
 
 # Define class to hold data/info on a given bus route
 class BusRoute(object):
@@ -37,20 +39,14 @@ class BusRoute(object):
         self.KMLdata = BS(f)
         f.close()
 
-        # extract coordinate data from KML
+        # extract coordinate data from KML and convert to array
         coords_str = unicode(self.KMLdata.find(name='coordinates').contents[0])
-        coords_str = coords_str.split(' ')
-        num_cols = self.dimensions
-        num_rows = len(coords_str) / num_cols
-
-        # convert from string to float
-        self.coordinates = np.empty((num_rows, num_cols))
-        for rr in xrange(num_rows):
-            row = coords_str[rr].split(',')
-            for cc in xrange(num_cols):
-                self.coordinates[rr][cc] = float(row[cc])
+        self.coordinates = _unicode_to_array(coords_str, num_cols=self.dimensions)
 
     def saveas_csv(self, filename=None, **kwargs):
+        '''
+        Save bus route coordinate data (lat, longitude, 0) as a csv file
+        '''
         # Noe: kwargs are just passed to numpy's built-in savetxt function
 
         # get filename
@@ -61,38 +57,54 @@ class BusRoute(object):
         # save using numpy's built-in function
         np.savetxt(filename, self.coordinates, **kwargs)
 
+    def show_map(self):
+        '''
+        Display route on a map
+        '''
+
+        # plot basemap w/ state and county lines, etc
+        fig = plt.figure()
+        m = Basemap(llcrnrlon=-76.8, llcrnrlat=42.2, urcrnrlon=-76.2, \
+            urcrnrlat=42.7, rsphere=(6378137.00,6356752.3142), resolution='l', \
+            projection='merc')
+        m.shadedrelief()
+        m.drawcoastlines()
+        m.drawstates()
+        m.drawcountries()
+        m.drawcounties()
+
+        # plot route coordinates
+        m.plot(self.coordinates[:,0], self.coordinates[:,1], 'k.-',
+               latlon=True)
+
+        # finalize and show plot
+        fig.show()
+
+
+# Other functions
+def _unicode_to_array(string, num_cols=3):
+    # calculate how many rows and preallocate output
+    string = string.split(' ')
+    num_rows = len(string) / num_cols
+    array = np.empty((num_rows, num_cols))
+
+    # convert from string to float
+    for rr in xrange(num_rows):
+        row = string[rr].split(',')
+        for cc in xrange(num_cols):
+            array[rr][cc] = float(row[cc])
+    return array
+
 # Example instance
 kwargs = {
-    'filename':'D:\\Users\\Lena\\Documents\\projects\\bus_routes_tcat\\bus_routes\\data\\route-locations\\route10.kml'
+    'filename':'data\\route-locations\\route36.kml'
     }
 test = BusRoute(**kwargs)
-test.saveas_csv()
+test.show_map()
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# note to self:
+# http://stackoverflow.com/questions/10871085/viewing-a-polygon-read-from-shapefile-with-matplotlib
 
 
 
