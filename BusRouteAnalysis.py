@@ -2,6 +2,7 @@
 Class to hold bus route info
 - Read from KML
 - Save to CSV
+- Show route on a map
 '''
 
 # Imports
@@ -84,8 +85,8 @@ class BusRoute(object):
 # Other functions
 def _unicode_to_array(string, num_cols=3):
     # calculate how many rows and preallocate output
-    string = string.split(' ')
-    num_rows = len(string) / num_cols
+    string = string.strip().split(' ')
+    num_rows = len(string)
     array = np.empty((num_rows, num_cols))
 
     # convert from string to float
@@ -97,7 +98,7 @@ def _unicode_to_array(string, num_cols=3):
 
 # Example instance
 kwargs = {
-    'filename':'data\\route-locations\\route36.kml'
+    'filename':'data\\route-locations\\route10.kml'
     }
 test = BusRoute(**kwargs)
 test.show_map()
@@ -107,13 +108,31 @@ test.show_map()
 # http://stackoverflow.com/questions/10871085/viewing-a-polygon-read-from-shapefile-with-matplotlib
 
 
-
-
-
-
-
-
-
+## Interpret & analyze address
+#from pygeocoder import Geocoder
+#address = Geocoder.geocode("102 W Falls, Ithaca")
+#
+## print full address info
+#data = address.data[0]
+#
+#def dict_print(data, pre):
+#    for k, v in data.iteritems():
+#        if isinstance(v, dict):
+#            dict_print(v, pre + ' > ' + k)
+#
+#        elif isinstance(v, list):
+#            c = 0
+#            for i in v:
+#                if isinstance(i, dict):
+#                    dict_print(i, pre + ' > ' + k + ' (%d)'%c)
+#                else:
+#                    print pre + ' > ' + k + ' (%d) > '%c + str(i)
+#                c = c+1;
+#        else:
+#            print pre+' > ' + k + ' > ' + str(v)
+#
+#dict_print(data, 'data')
+#
 
 
 
