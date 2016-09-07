@@ -13,6 +13,9 @@ from tkFileDialog import asksaveasfilename
 import numpy as np
 from matplotlib import pyplot as plt
 from mpl_toolkits.basemap import Basemap
+import urllib2
+import urllib
+import json
 
 # Define class to hold data/info on a given bus route
 class BusRoute(object):
@@ -58,7 +61,7 @@ class BusRoute(object):
         # save using numpy's built-in function
         np.savetxt(filename, self.coordinates, **kwargs)
 
-    def show_map(self):
+    def show_route(self):
         '''
         Display route on a map
         '''
@@ -84,10 +87,16 @@ class BusRoute(object):
 
 # Other functions
 def _unicode_to_array(string, num_cols=3):
-    # calculate how many rows and preallocate output
+    '''
+    Take a string with coordinates in the form "lat,lon,0 "*N
+    and return an N-by-3 numpy array containing the coordinates as floats
+    '''
+    #
     string = string.strip().split(' ')
     num_rows = len(string)
-    array = np.empty((num_rows, num_cols))
+
+    # calculate how many rows and preallocate output
+    array = np.empty((num_rows, num_cols), dtype=float)
 
     # convert from string to float
     for rr in xrange(num_rows):
@@ -96,43 +105,79 @@ def _unicode_to_array(string, num_cols=3):
             array[rr][cc] = float(row[cc])
     return array
 
+def distance_time(pointA, pointB, units='imperial', mode='walking',
+                  printout=False, key='default'):
+    '''
+    Use googlemaps API to return the distance (in meters) and travel time (in
+    seconds) from the addresses or coordinate pairs in pointA to the addresses
+    or coordinate pairs in pointB. Additional optional kwargs are used to set
+    API parameters.
+
+    Inputs:
+        pointA      String or tuple of strings or (lat,lon) pairs specifying
+                    origin address(es)
+        pointB      String or tuple of strings or (lat,lon) pairs specifying
+                    destination address(es)
+
+    KWargs:
+        units       'imperial' or 'metric', specifying the units for printed
+                    quantities only. Default is 'imperial'
+        mode        Mode of transportation, see googlemaps distance matrix API
+                    documentation for a complete list of options. Default is
+                    'walking'
+        key         Key used for gaining API access. Default is [hidden]
+        printout    Boolean specifying if the distance and time results should
+                    be printed to the screen. Default is False
+
+    Outputs:
+        distance    Distance in meters between the (first) origin and
+                    destination pair
+        duration    Time in seconds to travel between the (first) origin and
+                    destination pair
+
+    '''
+    # format url request of googlemaps api
+    api_name = 'distancematrix'
+    if key == 'default':
+        key = 'AIzaSyCVQRazNBAG1qpTQooiHg7DCb2OJE3g4mA'
+    params = {'origins': pointA, 'destinations': pointB, 'units': units,
+              'mode': mode, 'key': key}
+    base = 'https://maps.googleapis.com/maps/api/{0}/json?'.format(api_name)
+    url = base + urllib.urlencode(params)
+
+    # make url request and grab the distance & duration measures from the result
+    response = urllib2.urlopen(url)
+    html = response.read()
+    out = json.loads(html)
+    origin = out['origin_addresses'][0]
+    destination = out['destination_addresses'][0]
+    distance = out['rows'][0]['elements'][0]['distance']['value']
+    distance_str = out['rows'][0]['elements'][0]['distance']['text']
+    duration = out['rows'][0]['elements'][0]['duration']['value']
+    duration_str = out['rows'][0]['elements'][0]['duration']['text']
+
+    # display the result
+    if printout:
+        print '%s to %s: %s (%s %s)'%(
+            origin, destination, distance_str, duration_str, params['mode'])
+
+    # return the result
+    return (distance, duration)
+
+
 # Example instance
 kwargs = {
     'filename':'data\\route-locations\\route10.kml'
     }
-test = BusRoute(**kwargs)
-test.show_map()
+route10 = BusRoute(**kwargs)
+route10.show_route()
+
+# example distance calculation
+distance_time('Ithaca, NY', 'Lansing, NY', printout=True)
 
 
 # note to self:
 # http://stackoverflow.com/questions/10871085/viewing-a-polygon-read-from-shapefile-with-matplotlib
-
-
-## Interpret & analyze address
-#from pygeocoder import Geocoder
-#address = Geocoder.geocode("102 W Falls, Ithaca")
-#
-## print full address info
-#data = address.data[0]
-#
-#def dict_print(data, pre):
-#    for k, v in data.iteritems():
-#        if isinstance(v, dict):
-#            dict_print(v, pre + ' > ' + k)
-#
-#        elif isinstance(v, list):
-#            c = 0
-#            for i in v:
-#                if isinstance(i, dict):
-#                    dict_print(i, pre + ' > ' + k + ' (%d)'%c)
-#                else:
-#                    print pre + ' > ' + k + ' (%d) > '%c + str(i)
-#                c = c+1;
-#        else:
-#            print pre+' > ' + k + ' > ' + str(v)
-#
-#dict_print(data, 'data')
-#
 
 
 
