@@ -13,9 +13,7 @@ from tkFileDialog import asksaveasfilename
 import numpy as np
 from matplotlib import pyplot as plt
 from mpl_toolkits.basemap import Basemap
-import urllib2
-import urllib
-import json
+import googlemaps
 
 # Define class to hold data/info on a given bus route
 class BusRoute(object):
@@ -24,9 +22,9 @@ class BusRoute(object):
         self._set_options(**kwargs)
         self._import_data()
 
-    def _set_options(self, filename=None, dimensions=3, **kwargs):
+    def _set_options(self, route_number=10, dimensions=3, **kwargs):
         # set options/inputs
-        self.filename = filename
+        self.filename = 'data\\route-locations\\route%d.kml'%(route_number)
         self.dimensions = dimensions
 
     def _import_data(self):
@@ -51,7 +49,7 @@ class BusRoute(object):
         '''
         Save bus route coordinate data (lat, longitude, 0) as a csv file
         '''
-        # Noe: kwargs are just passed to numpy's built-in savetxt function
+        # Note: kwargs are just passed to numpy's built-in savetxt function
 
         # get filename
         if filename is None:
@@ -106,7 +104,7 @@ def _unicode_to_array(string, num_cols=3):
     return array
 
 def distance_time(pointA, pointB, units='imperial', mode='walking',
-                  printout=False, key='default'):
+                  printout=False, key='default', other={}):
     '''
     Use googlemaps API to return the distance (in meters) and travel time (in
     seconds) from the addresses or coordinate pairs in pointA to the addresses
@@ -128,6 +126,7 @@ def distance_time(pointA, pointB, units='imperial', mode='walking',
         key         Key used for gaining API access. Default is [hidden]
         printout    Boolean specifying if the distance and time results should
                     be printed to the screen. Default is False
+        other       Dict containing other kwargs passes to the gmaps api
 
     Outputs:
         distance    Distance in meters between the (first) origin and
@@ -136,44 +135,50 @@ def distance_time(pointA, pointB, units='imperial', mode='walking',
                     destination pair
 
     '''
-    # format url request of googlemaps api
-    api_name = 'distancematrix'
+
+    # handle inputs
     if key == 'default':
         key = 'AIzaSyCVQRazNBAG1qpTQooiHg7DCb2OJE3g4mA'
-    params = {'origins': pointA, 'destinations': pointB, 'units': units,
-              'mode': mode, 'key': key}
-    base = 'https://maps.googleapis.com/maps/api/{0}/json?'.format(api_name)
-    url = base + urllib.urlencode(params)
+    params = {'units': units, 'mode': mode}
+    params.update(other)
+    pointA, pointB = [list(c) if (type(c) is tuple) else c for c in (pointA, pointB)]
 
-    # make url request and grab the distance & duration measures from the result
-    response = urllib2.urlopen(url)
-    html = response.read()
-    out = json.loads(html)
-    origin = out['origin_addresses'][0]
-    destination = out['destination_addresses'][0]
-    distance = out['rows'][0]['elements'][0]['distance']['value']
-    distance_str = out['rows'][0]['elements'][0]['distance']['text']
-    duration = out['rows'][0]['elements'][0]['duration']['value']
-    duration_str = out['rows'][0]['elements'][0]['duration']['text']
+    # make request
+    gmaps = googlemaps.Client(key=key)
+    res = gmaps.distance_matrix(pointA, pointB, **params)
 
-    # display the result
-    if printout:
-        print '%s to %s: %s (%s %s)'%(
-            origin, destination, distance_str, duration_str, params['mode'])
+    # interpret response to return distance & duration measures
+    if res['status']=='OK':
 
-    # return the result
-    return (distance, duration)
+        # print each result to the screen
+        if printout:
+            o = 0
+            for A in res['origin_addresses']:
+                d = 0
+                for B in res['destination_addresses']:
+                    print '%s to %s: %s (%s %s)'%(A, B, \
+                        res['rows'][o]['elements'][d]['distance']['text'], \
+                        res['rows'][o]['elements'][d]['duration']['text'], \
+                        params['mode'])
+                    d += 1
+                o += 1
 
+        # return the set of distances and durations
+        distances = [[a['distance']['value'] for a in b['elements']] for b in res['rows']]
+        durations = [[a['duration']['value'] for a in b['elements']] for b in res['rows']]
+        return (distances, durations)
+
+    else:
+        print 'Oops! hit a problem: ', res['status']
+        return None
 
 # Example instance
-kwargs = {
-    'filename':'data\\route-locations\\route10.kml'
-    }
-route10 = BusRoute(**kwargs)
-route10.show_route()
+kwargs = {'route_number': 10}
+route = BusRoute(**kwargs)
+route.show_route()
 
 # example distance calculation
-distance_time('Ithaca, NY', 'Lansing, NY', printout=True)
+#dist, dur = distance_time(('Ithaca, NY', 'Ithaca, NY'), ('New York City', 'Lansing, NY'), printout=True)
 
 
 # note to self:
