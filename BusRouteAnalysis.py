@@ -17,6 +17,13 @@ import googlemaps
 
 # Define class to hold data/info on a given bus route
 class BusRoute(object):
+    '''
+    Class to hold and process information for a single bus route.
+
+    Kwargs:
+        route_number    Int specifying the route number to import
+        dimensions
+    '''
 
     def __init__(self, **kwargs):
         self._set_options(**kwargs)
@@ -43,7 +50,7 @@ class BusRoute(object):
 
         # extract coordinate data from KML and convert to array
         coords_str = unicode(self.KMLdata.find(name='coordinates').contents[0])
-        self.coordinates = _unicode_to_array(coords_str, num_cols=self.dimensions)
+        self.coordinates = _unicode_to_array(coords_str)
 
     def saveas_csv(self, filename=None, **kwargs):
         '''
@@ -61,7 +68,7 @@ class BusRoute(object):
 
     def show_route(self):
         '''
-        Display route on a map
+        Display the route coordinates on a map of Tompkins County
         '''
 
         # plot basemap w/ state and county lines, etc
@@ -84,12 +91,21 @@ class BusRoute(object):
 
 
 # Other functions
-def _unicode_to_array(string, num_cols=3):
+def _unicode_to_array(string):
     '''
     Take a string with coordinates in the form "lat,lon,0 "*N
     and return an N-by-3 numpy array containing the coordinates as floats
+
+    Inputs (required):
+        string      String with coordinates in the form "lat,lon,0 "*N
+
+    Outputs:
+        array       Numpy array of floats with shape (N,3) containing the
+                    coordinates from string. Each row is a coordinate set
+                    i.e. [[lat0, lon0, 0], [lat0, lon0, 0],...]
     '''
-    #
+    # setup, process inputs
+    num_cols = 3
     string = string.strip().split(' ')
     num_rows = len(string)
 
@@ -103,6 +119,25 @@ def _unicode_to_array(string, num_cols=3):
             array[rr][cc] = float(row[cc])
     return array
 
+def get_routes(numbers):
+    '''
+    Create dictionary to hold all bus routes given numbers
+
+    Inputs (required):
+        numbers Tuple of ints listing the bus route(s) to be
+                containted in the output
+
+    Outputs:
+        routes  Dict of bus route objects, identified by their int bus route
+                number
+    '''
+    all_routes = dict(zip(numbers, numbers))
+    for n in numbers:
+        all_routes[n] = BusRoute(route_number=n)
+
+    return all_routes
+
+
 def distance_time(pointA, pointB, units='imperial', mode='walking',
                   printout=False, key='default', other={}):
     '''
@@ -111,13 +146,13 @@ def distance_time(pointA, pointB, units='imperial', mode='walking',
     or coordinate pairs in pointB. Additional optional kwargs are used to set
     API parameters.
 
-    Inputs:
+    Inputs (required):
         pointA      String or tuple of strings or (lat,lon) pairs specifying
                     origin address(es)
         pointB      String or tuple of strings or (lat,lon) pairs specifying
                     destination address(es)
 
-    KWargs:
+    KWargs (optional):
         units       'imperial' or 'metric', specifying the units for printed
                     quantities only. Default is 'imperial'
         mode        Mode of transportation, see googlemaps distance matrix API
@@ -170,16 +205,22 @@ def distance_time(pointA, pointB, units='imperial', mode='walking',
 
     else:
         print 'Oops! hit a problem: ', res['status']
-        return None
+        return (None, None)
 
-# Example instance
-kwargs = {'route_number': 10}
-route = BusRoute(**kwargs)
-route.show_route()
+
+
+
+## Example instance
+#kwargs = {'route_number': 10}
+#route = BusRoute(**kwargs)
+#route.show_route()
+
+# Dict of multiple routes
+bus_numbers = (10, 36, 15)
+routes = get_routes(bus_numbers)
 
 # example distance calculation
 #dist, dur = distance_time(('Ithaca, NY', 'Ithaca, NY'), ('New York City', 'Lansing, NY'), printout=True)
-
 
 # note to self:
 # http://stackoverflow.com/questions/10871085/viewing-a-polygon-read-from-shapefile-with-matplotlib
