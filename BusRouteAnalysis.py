@@ -1,8 +1,11 @@
 '''
-Class to hold bus route info
-- Read from KML
-- Save to CSV
-- Show route on a map
+- Class to hold bus route info
+    - Read from KML
+    - Save to CSV
+    - Show route on a map
+- Function to combine multiple routes into a dict
+- Function to measure distance & travel time between addresses and/or
+  coordinate pairs
 '''
 
 # Imports
@@ -137,6 +140,36 @@ def get_routes(numbers):
 
     return all_routes
 
+def geocode(address, key='default', other={}):
+    '''
+    Use google maps geocoding API to convert string with address to coordinates
+
+    Input (required):
+        address         String specifying map address
+
+    Kwargs (optional):
+        key         Key used for gaining API access. Default is [hidden]
+        other       Dict containing other kwargs passes to the gmaps api
+
+    Output:
+        coordinates     Numpy float arrary of shape (3L,) containing the
+                        coordinates of the given address, i.e. [lat, lon, 0.]
+    '''
+    if key == 'default':
+        key = 'AIzaSyCVQRazNBAG1qpTQooiHg7DCb2OJE3g4mA'
+    gmaps = googlemaps.Client(key=key)
+    params = {}
+    params.update(other)
+    res = gmaps.geocode(address=address, **params)
+    coordinates = np.array((res[0]['geometry']['location']['lat'],
+                            res[0]['geometry']['location']['lng'],
+                            0.), dtype=float)
+    return coordinates
+
+
+
+
+
 
 def distance_time(pointA, pointB, units='imperial', mode='walking',
                   printout=False, key='default', other={}):
@@ -218,6 +251,10 @@ def distance_time(pointA, pointB, units='imperial', mode='walking',
 # Dict of multiple routes
 bus_numbers = (10, 36, 15)
 routes = get_routes(bus_numbers)
+
+my_address = '102 W Falls St, Ithaca, NY'
+my_coords = geocode(my_address)
+print my_coords
 
 # example distance calculation
 #dist, dur = distance_time(('Ithaca, NY', 'Ithaca, NY'), ('New York City', 'Lansing, NY'), printout=True)
