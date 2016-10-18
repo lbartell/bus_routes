@@ -263,7 +263,6 @@ route.show_route()
 #my_coords = geocode(my_address)
 #print my_coords
 
-routes = get_routes(bus_numbers)
 ## Example distance calculation
 #dist, dur = distance_time(('Ithaca, NY', 'Ithaca, NY'), ('New York City', 'Lansing, NY'), printout=True)
 
