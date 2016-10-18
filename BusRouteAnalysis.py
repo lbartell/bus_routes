@@ -16,6 +16,7 @@ from tkFileDialog import asksaveasfilename
 import numpy as np
 from matplotlib import pyplot as plt
 from mpl_toolkits.basemap import Basemap
+from matplotlib.patches import Polygon
 import googlemaps
 
 # Define class to hold data/info on a given bus route
@@ -34,7 +35,7 @@ class BusRoute(object):
 
     def _set_options(self, route_number=10, dimensions=3, **kwargs):
         # set options/inputs
-        self.filename = 'data\\route-locations\\route%d.kml'%(route_number)
+        self.filename = 'data\\route_locations\\route%d.kml'%(route_number)
         self.dimensions = dimensions
 
     def _import_data(self):
@@ -85,9 +86,22 @@ class BusRoute(object):
         m.drawcountries()
         m.drawcounties()
 
+
+
+        # plot ny state water features
+        m.readshapefile('data\\water\\NHD_M_36_New_York_ST\\NHDFlowline','water', color='LightSteelBlue', linewidth=2.)
+        m.readshapefile('data\\water\\NHD_M_36_New_York_ST\\NHDArea','water_area', drawbounds=False)
+        m.readshapefile('data\\water\\NHD_M_36_New_York_ST\\NHDWaterbody','lakes', drawbounds=False)
+        for lake in m.lakes + m.water_area:
+            poly = Polygon(lake, facecolor='LightSteelBlue', edgecolor='CornflowerBlue')
+            plt.gca().add_patch(poly)
+
+        # read and plot tompkins county shapefile
+        m.readshapefile('data\\parcels\\ParcelPublic2016_WGS84', 'parcels')
+
         # plot route coordinates
-        m.plot(self.coordinates[:,0], self.coordinates[:,1], 'k.-',
-               latlon=True)
+        m.plot(self.coordinates[:,0], self.coordinates[:,1], '.-',
+               latlon=True, c='FireBrick', lw=2.)
 
         # finalize and show plot
         fig.show()
@@ -166,11 +180,6 @@ def geocode(address, key='default', other={}):
                             0.), dtype=float)
     return coordinates
 
-
-
-
-
-
 def distance_time(pointA, pointB, units='imperial', mode='walking',
                   printout=False, key='default', other={}):
     '''
@@ -241,27 +250,22 @@ def distance_time(pointA, pointB, units='imperial', mode='walking',
         return (None, None)
 
 
+# Example instance
+kwargs = {'route_number': 10}
+route = BusRoute(**kwargs)
+route.show_route()
 
+## Dict of multiple routes
+#bus_numbers = (10, 36, 15)
+#routes = get_routes(bus_numbers)
+#
+#my_address = '102 W Falls St, Ithaca, NY'
+#my_coords = geocode(my_address)
+#print my_coords
 
-## Example instance
-#kwargs = {'route_number': 10}
-#route = BusRoute(**kwargs)
-#route.show_route()
-
-# Dict of multiple routes
-bus_numbers = (10, 36, 15)
 routes = get_routes(bus_numbers)
-
-my_address = '102 W Falls St, Ithaca, NY'
-my_coords = geocode(my_address)
-print my_coords
-
-# example distance calculation
+## Example distance calculation
 #dist, dur = distance_time(('Ithaca, NY', 'Ithaca, NY'), ('New York City', 'Lansing, NY'), printout=True)
-
-# note to self:
-# http://stackoverflow.com/questions/10871085/viewing-a-polygon-read-from-shapefile-with-matplotlib
-
 
 
 
