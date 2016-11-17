@@ -217,7 +217,9 @@ def distance_time(pointA, pointB, units='imperial', mode='walking',
 
     # handle inputs
     if key == 'default':
-        key = 'AIzaSyCVQRazNBAG1qpTQooiHg7DCb2OJE3g4mA'
+        fkey = open('GoogleMapsAPIKey.txt', 'r')
+        key = fkey.readline()
+        fkey.close()
     params = {'units': units, 'mode': mode}
     params.update(other)
     pointA, pointB = [list(c) if (type(c) is tuple) else c for c in (pointA, pointB)]
@@ -250,23 +252,3 @@ def distance_time(pointA, pointB, units='imperial', mode='walking',
     else:
         print 'Oops! hit a problem: ', res['status']
         return (None, None)
-
-
-# Example instance
-kwargs = {'route_number': 10}
-route = BusRoute(**kwargs)
-route.show_route()
-
-## Dict of multiple routes
-#bus_numbers = (10, 36, 15)
-#routes = get_routes(bus_numbers)
-#
-#my_address = '102 W Falls St, Ithaca, NY'
-#my_coords = geocode(my_address)
-#print my_coords
-
-## Example distance calculation
-#dist, dur = distance_time(('Ithaca, NY', 'Ithaca, NY'), ('New York City', 'Lansing, NY'), printout=True)
-
-
-
