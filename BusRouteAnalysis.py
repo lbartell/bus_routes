@@ -170,7 +170,9 @@ def geocode(address, key='default', other={}):
                         coordinates of the given address, i.e. [lat, lon, 0.]
     '''
     if key == 'default':
-        key = 'AIzaSyCVQRazNBAG1qpTQooiHg7DCb2OJE3g4mA'
+        fkey = open('GoogleMapsAPIKey.txt', 'r')
+        key = fkey.readline()
+        fkey.close()
     gmaps = googlemaps.Client(key=key)
     params = {}
     params.update(other)

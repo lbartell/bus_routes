@@ -4,6 +4,7 @@
 .*
 !/.gitignore
 IPython (Py 2.7) Notebook
+GoogleMapsAPIKey.txt
 
 # Windows image file caches
 Thumbs.db
